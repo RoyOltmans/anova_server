@@ -1,0 +1,48 @@
+[project]
+name = "anova_server"
+version = "0.0.1"
+description = ""
+authors = [{name = "roy.oltmans", email = "roy.oltmans@gmail.com"}, ]
+readme = "README.md"
+requires-python = "~=3.11"
+
+dependencies = [
+    "asyncer~=0.0.8",
+    "bleak>=0.22.2",
+    "fastapi[standard]~=0.114.0",
+    "pydantic-settings>=2.5.2",
+    "pydantic>=2.9.2",
+]
+
+[tool.uv]
+dev-dependencies = [
+  "mypy>=1.11.2",
+  "pytest~=8.3.2",
+  "ruff>=0.6.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.mypy]
+plugins = [
+  "pydantic.mypy"
+]
+
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+mypy_path = "src"
+explicit_package_bases = true
+
+# for strict mypy: (this is the tricky one :-))
+disallow_untyped_defs = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true

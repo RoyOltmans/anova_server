@@ -1,0 +1,153 @@
+import asyncio
+import logging
+from types import TracebackType
+from typing import Optional, Any, Union, Type, Tuple
+
+from bleak import BleakClient, BleakScanner
+from bleak.backends.characteristic import BleakGATTCharacteristic
+from bleak.backends.device import BLEDevice
+from bleak.backends.scanner import AdvertisementData
+from bleak.uuids import normalize_uuid_str
+
+from commands import AnovaCommand
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Bluetooth Constants
+ANOVA_SERVICE_UUID = "ffe0"
+ANOVA_CHARACTERISTIC_UUID = "ffe1"
+ANOVA_DEVICE_NAME = "Anova"
+
+# Command Constants
+MAX_COMMAND_LENGTH = 20
+COMMAND_DELIMITER = "\r"
+
+# Custom Exceptions
+class AnovaException(Exception):
+    """Base exception for Anova-related errors."""
+
+
+class AnovaConnectionError(AnovaException):
+    """Raised when there's an issue connecting to the Anova device."""
+
+
+class AnovaCommandError(AnovaException):
+    """Raised when there's an error executing a command."""
+
+
+class AnovaBluetoothClient:
+    _client: Optional[BleakClient]
+    command_lock: asyncio.Lock
+    device: Union[BLEDevice, str]
+
+    def __init__(self, device: Union[BLEDevice, str]):
+        self.command_lock = asyncio.Lock()
+        self.device = device
+
+    @staticmethod
+    async def scan(timeout: float = 5.0) -> Tuple[Optional[BLEDevice], Optional[AdvertisementData]]:
+        """
+        Scan for Anova devices.
+
+        :param timeout: Scan duration in seconds
+        :return: BLEDevice and AdvertisementData of the device if found
+        """
+        logger.debug("Starting BLE scan for Anova devices.")
+        devs = await BleakScanner.discover(timeout=timeout, return_adv=True)
+        for dev, adv in devs.values():
+            logger.debug(f"Found device: {adv.local_name}, UUIDs: {adv.service_uuids}")
+            if adv.local_name == ANOVA_DEVICE_NAME:
+                for uuid in adv.service_uuids:
+                    if normalize_uuid_str(ANOVA_SERVICE_UUID) == uuid:
+                        logger.info(f"Anova device found: {dev.name}")
+                        return dev, adv
+
+        logger.warning("No Anova devices found during scan.")
+        return None, None
+
+    async def __aenter__(self) -> 'AnovaBluetoothClient':
+        logger.debug(f"Attempting to connect to device: {self.device}")
+        self._client = BleakClient(self.device)
+        try:
+            await self._client.connect()
+            logger.info("Connected to Anova device.")
+        except Exception as e:
+            logger.error(f"Failed to connect to Anova device: {e}")
+            raise AnovaConnectionError(f"Failed to connect: {e}")
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Type[BaseException],
+        exc_val: BaseException,
+        exc_tb: TracebackType,
+    ) -> None:
+        if self._client:
+            logger.debug("Disconnecting from Anova device.")
+            await self._client.disconnect()
+            self._client = None
+            logger.info("Disconnected from Anova device.")
+
+    async def send_command(self, command: Union[AnovaCommand, str], timeout: float = 5.0) -> Any:
+        if isinstance(command, AnovaCommand) and not command.supports_ble():
+            raise AnovaCommandError(f"Command '{command}' is not supported over BLE")
+        if not self._client:
+            raise AnovaConnectionError("Not connected to Anova device")
+
+        logger.debug(f"Sending command: {command}")
+        async with self.command_lock:
+            command_data = f"{command}\r".encode()
+            logger.debug(f"Prepared command data: {command_data}")
+
+            async def response_callback(sender: BleakGATTCharacteristic, data: bytearray) -> None:
+                logger.debug(f"Response callback triggered with data: {data}")
+                await q.put(data)
+
+            q: asyncio.Queue[bytearray] = asyncio.Queue()
+
+            try:
+                logger.debug(f"Starting notification for characteristic: {ANOVA_CHARACTERISTIC_UUID}")
+                await self._client.start_notify(normalize_uuid_str(ANOVA_CHARACTERISTIC_UUID), response_callback)
+
+                logger.debug(f"Writing command: {command_data}")
+                for attempt in range(3):
+                    try:
+                        logger.debug(f"Attempting GATT write (attempt {attempt + 1})")
+                        await self._client.write_gatt_char(
+                            normalize_uuid_str(ANOVA_CHARACTERISTIC_UUID), command_data, response=True
+                        )
+                        logger.info("GATT write successful.")
+                        break
+                    except Exception as e:
+                        logger.warning(f"GATT write failed on attempt {attempt + 1}: {e}")
+                        if attempt == 2:
+                            raise
+
+                response_buffer = bytearray()
+                logger.debug(f"Waiting for response with timeout: {timeout}s")
+                try:
+                    async with asyncio.timeout(timeout):
+                        while chunk := await q.get():
+                            logger.debug(f"Received notification chunk: {chunk}")
+                            response_buffer.extend(chunk)
+                            if b'\r' in chunk:
+                                break
+                except asyncio.TimeoutError:
+                    logger.error(f"Command '{command}' timed out waiting for response.")
+                    raise AnovaCommandError(f"Command '{command}' timed out")
+
+                response = response_buffer.decode().strip()
+                logger.debug(f"Full response received: {response}")
+
+                if isinstance(command, str):
+                    return response
+                return command.decode(response)
+
+            except Exception as e:
+                logger.error(f"Error during GATT write or notification: {e}")
+                raise
+            finally:
+                logger.debug("Stopping notification.")
+                await self._client.stop_notify(normalize_uuid_str(ANOVA_CHARACTERISTIC_UUID))
