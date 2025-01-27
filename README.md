@@ -1,6 +1,6 @@
 # Anova Server
 
-This project provides a server for controlling your Anova, building on the excellent work by [AlmogBaku](https://github.com/AlmogBaku/Anova4All/). AlmogBaku's original code is a great starting point, and this repository expands on it with enhancements to make deployment easier and more flexible.
+This project provides a server for controlling your Anova via rest json API's, building on the excellent work by [AlmogBaku](https://github.com/AlmogBaku/Anova4All/). AlmogBaku's original code is a great starting point, and this repository expands on it with enhancements to make deployment easier and more flexible. Also stabilized the code so the anova is always available.
 
 ## Installation
 
@@ -39,8 +39,8 @@ docker build -t anova-server .
 docker run -p 8000:8000 -p 8080:8080 anova-server
 ```
 
-# Missing Bluetooth Control
-Currently, Bluetooth control functionality is not yet implemented in this server. While AlmogBaku's original script has great potential, there are some technical hurdles that need to be overcome to integrate Bluetooth management into the server. The current version focuses primarily on HTTP-based control and does not yet support direct Bluetooth communication for Anova.
+# Manual Bluetooth Control
+Currently, Bluetooth control functionality is not configured in the docker instance but it is implemented in this server. There are some technical hurdles that need to be overcome to integrate Bluetooth management into the server. You will need to deploy the code (not the docker) on a RPI 4 from there you can start the process via the API and move the Anova to a server or stay on the RPI. The current version focuses primarily on HTTP-based control as an API for integration in Home Assitant or other domotic/automation solutions and does not yet support direct Bluetooth communication for Anova.
 
 ## Why it's missing:
 Technical Limitation: The Bluetooth integration requires additional hardware configurations (like a Bluetooth adapter) and software adjustments that have yet to be fully developed for this server.
