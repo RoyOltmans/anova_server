@@ -56,3 +56,13 @@ This project is licensed under the MIT License. See [LICENSE](/LICENSE) for deta
 ## Disclaimer
 Anova_server itself and the associated Python script are distributed under the MIT License. While every effort has been made to ensure the safety and security of this code, you use it at your own risk. Configure the script and card securely to avoid exposing sensitive data. Performance may vary depending on the size and structure of your filesystem.
 
+## References
+
+Thanks for @TheUbuntuGuy for the initial research on the Anova Wi-Fi protocol:
+
+- https://www.youtube.com/watch?v=xDDPFHhY7ec
+- https://gist.github.com/TheUbuntuGuy/225492a8dec816d49b70d9c21811e8b1
+
+**Important**: This project is not affiliated with Anova or any other company. It's a community project that aims to
+keep the device functional after the cloud services are shut down.
+
