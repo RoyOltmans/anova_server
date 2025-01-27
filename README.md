@@ -6,23 +6,23 @@ This project provides a server for controlling your Anova via rest json API's, b
 
 To get started with the server, follow these steps:
 
-### 1. Clone this repository:
+## 1. Clone this repository:
    ```bash
    git clone https://github.com/RoyOltmans/anova_server.git
    cd anova_server
 
-### 2. Build the Docker image:
+## 2. Build the Docker image:
 
 ```bash
 docker build -t anova-server .
 ```
 
-### 3. Run the Docker container, exposing ports 8000 and 8080:
+## 3. Run the Docker container, exposing ports 8000 and 8080:
 
 ```bash
 docker run -p 8000:8000 -p 8080:8080 anova-server
 ```
-### 4. Access the server at http://localhost:8000 or http://localhost:8080.
+## 4. Access the server at http://localhost:8000 or http://localhost:8080.
 
 # Docker Setup
 This project is packaged with Docker to simplify the setup and ensure consistent environments. The Dockerfile allows you to build the necessary environment with all dependencies, making the setup process much easier. Once you've built the Docker image, you can run it with the necessary ports exposed for communication. Docker handles all the environment configurations, including dependencies for Python, making it easier to deploy anywhere.
