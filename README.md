@@ -6,7 +6,7 @@ This project provides a server for controlling your Anova via rest json API's, b
 
 To get started with the server, follow these steps:
 
-# 1. Clone this repository:
+### 1. Clone this repository:
    ```bash
    git clone https://github.com/RoyOltmans/anova_server.git
    cd anova_server
