@@ -40,12 +40,43 @@ docker run -p 8000:8000 -p 8080:8080 anova-server
 ```
 
 #### Manual Bluetooth Control
-Currently, Bluetooth control functionality is not configured in the docker instance but it is implemented in this server. There are some technical hurdles that need to be overcome to integrate Bluetooth management into the server. You will need to deploy the code (not the docker) on a RPI 4 from there you can start the process via the API and move the Anova to a server or stay on the RPI. The current version focuses primarily on HTTP-based control as an API for integration in Home Assitant or other domotic/automation solutions and does not yet support direct Bluetooth communication for Anova.
+Currently, Bluetooth control functionality is not configured in the docker instance but it is implemented in the server code. There are some technical hurdles that need to be overcome to integrate Bluetooth via docker that wasnt my usecase. You will need to deploy the code (not the docker) on a RPI 4 from there you can start the process via the API and BLE and move the Anova to a server or stay on the RPI. This part is needed to move from a BLE supporting device to a server runnign docker.
 
-### Why it's missing:
-Technical Limitation: The Bluetooth integration requires additional hardware configurations (like a Bluetooth adapter) and software adjustments that have yet to be fully developed for this server.
-Future Plans: Implementing Bluetooth control is a planned feature for future releases. Contributions in this area are welcome if you have the necessary expertise.
-It works but you need to deploy it on a RPI 4 not in a container but as code (I used it to couple the anova to my docker server). You can do this by accessing http://[yourserverip]:8000/docs here is a page for using the api's.
+Implementing Bluetooth control in docker is a planned feature for future releases via Dockercontainer (so it doesnt matter if you deploy on a RPI or X86). ##Contributions in this area are welcome if you have the necessary time.## Basiccaly it works but you need to deploy it on a RPI 4 via GIT clone and start the service there.
+
+BEWARE this forces specific configuration on your system!!!!!
+```bash
+apt-get update && \
+apt-get upgrade -y && \
+apt-get install -y --no-install-recommends \
+software-properties-common \
+gpg-agent
+add-apt-repository ppa:deadsnakes/ppa -y
+apt-get install -y --no-install-recommends \    
+python3.11 \
+python3.11-venv \
+python3.11-distutils \
+python3-pip
+update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+update-alternatives --config python3	
+python3.11 -m pip install --upgrade pip
+pip install pyproject.toml bleak uvicorn fastapi pydantic-setting
+```
+
+From there the server should start:
+
+```bash
+uvicorn app.main:app --reload  --app-dir /anova/python --port 8000 --host 0.0.0.0 
+```
+
+Start by accessing the server at http://[yourserverip]:8000/docs
+
+The support for the HOST BLE is not in the container code (I used the setup with a RPI to couple the anova to my docker server). 
+
+The migration steps of the anova can be executed by accessing http://[yourserverip]:8000/docs here is a page for using the api's.
+   - 1 make a new key for the anova
+   - 2 push the server config
+   - 3 install the wifi config
 
 ### Background
 This repository started from the Python script created by AlmogBaku. Initially, I attempted to get the server working using Go, but after some challenges with dependencies and server setup, I shifted to Python and Docker for a smoother experience. The result is a more streamlined approach with working Docker support.
