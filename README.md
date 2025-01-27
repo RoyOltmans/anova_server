@@ -71,7 +71,7 @@ uvicorn app.main:app --reload  --app-dir /anova/python --port 8000 --host 0.0.0.
 
 Start by accessing the server at http://[yourserverip]:8000/docs
 
-The support for the HOST BLE is not in the container code (I used the setup with a RPI to couple the anova to my docker server). 
+AGAIN BE AWERE "The support for the host BLE is not in the container code (I used the setup with a RPI to couple the anova to my docker server)"
 
 The migration steps of the anova can be executed by accessing http://[yourserverip]:8000/docs here is a page for using the api's.
    - 1 make a new key for the anova
