@@ -78,6 +78,115 @@ The migration steps of the anova can be executed by accessing http://[yourserver
    - 2 push the server config
    - 3 install the wifi config
 
+### Home Assistant
+
+The API can be read via rest sensors
+
+```YAML
+sensor:
+  - platform: rest
+    name: "Anova Devices"
+    resource: "http://YOUR_ANOVA_API_URL/api/devices"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+    value_template: "{{ value_json | length }}"
+    json_attributes:
+      - id
+      - version
+    scan_interval: 300
+
+  - platform: rest
+    name: "Anova Temperature"
+    resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/temperature"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+    value_template: "{{ value_json.temperature }}"
+    unit_of_measurement: "°C"
+    scan_interval: 60
+
+  - platform: rest
+    name: "Anova Target Temperature"
+    resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/target_temperature"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+    value_template: "{{ value_json.temperature }}"
+    unit_of_measurement: "°C"
+    scan_interval: 60
+
+  - platform: rest
+    name: "Anova Timer"
+    resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+    value_template: "{{ value_json.timer }}"
+    unit_of_measurement: "minutes"
+    scan_interval: 60
+
+  - platform: rest
+    name: "Anova Status"
+    resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/state"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+    value_template: "{{ value_json.status }}"
+    scan_interval: 60
+```
+
+The API van be controlled via rest sensors
+
+```YAML
+rest_command:
+  set_anova_temperature:
+    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/target_temperature"
+    method: "post"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+      Content-Type: "application/json"
+    payload: '{"temperature": {{ temperature }} }'
+
+  start_anova_cooking:
+    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/start"
+    method: "post"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+      Content-Type: "application/json"
+
+  stop_anova_cooking:
+    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/stop"
+    method: "post"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+      Content-Type: "application/json"
+
+  set_anova_timer:
+    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer"
+    method: "post"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+      Content-Type: "application/json"
+    payload: '{"minutes": {{ minutes }} }'
+
+  start_anova_timer:
+    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer/start"
+    method: "post"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+      Content-Type: "application/json"
+
+  stop_anova_timer:
+    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer/stop"
+    method: "post"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+      Content-Type: "application/json"
+
+  clear_anova_alarm:
+    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/alarm/clear"
+    method: "post"
+    headers:
+      Authorization: "Bearer YOUR_SECRET_KEY"
+      Content-Type: "application/json"
+```
+
 ### Background
 This repository started from the Python script created by AlmogBaku. Initially, I attempted to get the server working using Go, but after some challenges with dependencies and server setup, I shifted to Python and Docker for a smoother experience. The result is a more streamlined approach with working Docker support.
 
