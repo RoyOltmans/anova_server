@@ -78,11 +78,28 @@ The migration steps of the anova can be executed by accessing http://[yourserver
    - 2 push the server config
    - 3 install the wifi config
 
-### Home Assistant
+# Home Assistant Integration for Anova Precision Cooker
 
-The API can be read via rest sensors
+## Overview
+This integration allows Home Assistant to monitor and control an Anova Precision Cooker over WiFi using REST sensors and commands. The API enables real-time temperature monitoring, status tracking, and remote control of cooking functions.
 
-```YAML
+## Features
+- **Monitor the Anova device**: Retrieve real-time data such as current temperature, target temperature, timer, and device status.
+- **Control the Anova device**: Set temperature, start and stop cooking, manage timers, and clear alarms.
+- **Seamless integration**: Works with Home Assistant’s RESTful platform to provide real-time updates and control.
+
+## Setup Instructions
+
+### 1. Enable REST API Access
+Ensure that your Anova Precision Cooker is connected to the internet and that you have access to the API. You will need:
+- The base URL of the API (replace `YOUR_ANOVA_API_URL`)
+- The device ID (replace `YOUR_DEVICE_ID`)
+- Your secret key for authentication (replace `YOUR_SECRET_KEY`)
+
+### 2. Add REST Sensors to `configuration.yaml`
+The following YAML configuration will create sensors to monitor your Anova device:
+
+```yaml
 sensor:
   - platform: rest
     name: "Anova Devices"
@@ -131,9 +148,10 @@ sensor:
     scan_interval: 60
 ```
 
-The API van be controlled via rest sensors
+### 3. Add REST Commands to `configuration.yaml`
+These commands allow you to control the Anova device remotely:
 
-```YAML
+```yaml
 rest_command:
   set_anova_temperature:
     url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/target_temperature"
@@ -186,6 +204,27 @@ rest_command:
       Authorization: "Bearer YOUR_SECRET_KEY"
       Content-Type: "application/json"
 ```
+
+### 4. Reload Home Assistant
+After updating your `configuration.yaml`, restart Home Assistant to apply the changes. You can do this via Developer Tools > YAML > Restart.
+
+## Usage
+Once set up, you can:
+- View the Anova device status in Home Assistant’s UI
+- Set the target temperature and start cooking using scripts or automations
+- Monitor and adjust the timer remotely
+- Stop cooking or clear alarms as needed
+
+## Notes
+- Ensure your Anova device is powered on and connected to WiFi.
+- Replace placeholders (`YOUR_ANOVA_API_URL`, `YOUR_DEVICE_ID`, `YOUR_SECRET_KEY`) with your actual API details.
+- You can create automations in Home Assistant to adjust cooking based on time or temperature.
+This integration provides full remote control over the Anova Precision Cooker via Home Assistant. By leveraging REST sensors and commands, you can automate and monitor your sous-vide cooking experience with ease.
+
+## Troubleshooting
+- **Data not updating?** Check if your API key is correct and the device is reachable.
+- **Commands not working?** Ensure the Home Assistant instance has network access to the Anova device.
+- **Incorrect temperature units?** Verify your device settings for Celsius or Fahrenheit.
 
 ### Background
 This repository started from the Python script created by AlmogBaku. Initially, I attempted to get the server working using Go, but after some challenges with dependencies and server setup, I shifted to Python and Docker for a smoother experience. The result is a more streamlined approach with working Docker support.
