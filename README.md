@@ -82,7 +82,7 @@ The migration steps of the anova can be executed by accessing http://[yourserver
    - 3 install the wifi config
      Go TO /api/ble/config_wifi_server, you must add your private SSID and PWD
 
-NOW your off the grid with the Anove ;-)
+NOW your off the grid with the Anova ;-)
 
 # Home Assistant Integration for Anova Precision Cooker
 
