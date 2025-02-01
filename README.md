@@ -214,7 +214,7 @@ rest_command:
 ### 4. Reload Home Assistant
 After updating your `configuration.yaml`, restart Home Assistant to apply the changes. You can do this via Developer Tools > YAML > Restart.
 
-### 5. HA Lovelace
+### 5. Home Assistant Lovelace panel
 
 The lovelace panel allows you to control and monitor the Anova Precision Cooker directly from Home Assistant. It requires the anova_server integration to establish communication with your cooker.
 visit this [lovelace_panel](https://github.com/RoyOltmans/lovalace_panel_anova_server)
