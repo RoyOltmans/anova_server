@@ -75,8 +75,14 @@ AGAIN BE AWERE "The support for the host BLE is not in the container code (I use
 
 The migration steps of the anova can be executed by accessing http://[yourserverip]:8000/docs here is a page for using the api's.
    - 1 make a new key for the anova
+     /api/ble/secret_key
+     VERY IMPORTANT COPY the key and fill it in at the HTTPBearer  (http, Bearer) or the APIKeyQuery (apiKey). You will need to repeat this every time you want to contact the anova via this page. So write (store) the devicename and key!!!!!!!!!!!!!!!!
    - 2 push the server config
+     /api/ble/config_wifi_server add the host (the RPI running or a docker host where this instance is running) and the port
    - 3 install the wifi config
+     Go TO /api/ble/config_wifi_server, you must add your private SSID and PWD
+
+NOW your off the grid with the Anove ;-)
 
 # Home Assistant Integration for Anova Precision Cooker
 
