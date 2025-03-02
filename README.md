@@ -127,6 +127,20 @@ sensor:
     unit_of_measurement: "°C"
     scan_interval: 60
 
+  ## use this sensor to so the lovelace gauge will not complain if your device is off
+  - platform: template
+    sensors:
+      anova_temperature_numeric:
+        friendly_name: "Anova Temperature (Numeric)"
+        value_template: >-
+          {% set val = states('sensor.anova_temperature') %}
+          {% if val in ['unknown', 'unavailable'] %}
+            {{ 0 | float }}
+          {% else %}
+            {{ val | float }}
+          {% endif %}
+        unit_of_measurement: "°C"
+
   - platform: rest
     name: "Anova Target Temperature"
     resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/target_temperature"
