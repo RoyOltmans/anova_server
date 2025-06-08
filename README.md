@@ -1,123 +1,168 @@
-## Anova Server
+# Anova Server
 
-This project provides a server for controlling your Anova via rest json API's, building on the excellent work by [AlmogBaku](https://github.com/AlmogBaku/Anova4All/). AlmogBaku's original code is a great starting point, and this repository expands on it with enhancements to make deployment easier and more flexible. Also stabilized the code so the anova is always available.
+A Python and Docker-based server for controlling your Anova Precision Cooker via REST API, based on and expanded from [AlmogBaku/Anova4All](https://github.com/AlmogBaku/Anova4All). This project lets you operate your Anova independently of cloud services, integrates easily with Home Assistant, and provides both WiFi and Bluetooth (BLE) connectivity.
 
-### Installation
+---
 
-To get started with the server, follow these steps:
+## 📝 Change List
 
-#### 1. Clone this repository:
-   ```bash
-   git clone https://github.com/RoyOltmans/anova_server.git
-   cd anova_server
+- **Added environment variables for BLE proxy on Raspberry Pi:**  
+  - `BLE_ADAPTER` for selecting the BLE adapter (e.g. `hci0`)
+  - `BLE_PROXY_PORT` to select the proxy's HTTP port (optional, default: 5000)
+- **Documented `-e BLE_PROXY_URL=http://[your ble server]:5000`** for Docker container usage when bridging WiFi <-> BLE
+- **Added example systemd service to run the BLE proxy as a background service**
+- Clarified Docker, native, and proxy usage instructions
+- General documentation improvements and clarifications
 
-#### 2. Build the Docker image:
-
-```bash
-docker build -t anova-server .
-```
-
-#### 3. Run the Docker container, exposing ports 8000 and 8080:
-
-```bash
-docker run -p 8000:8000 -p 8080:8080 anova-server
-```
-#### 4. Access the server at http://localhost:8000 or http://localhost:8080.
-
-## Docker Setup
-This project is packaged with Docker to simplify the setup and ensure consistent environments. The Dockerfile allows you to build the necessary environment with all dependencies, making the setup process much easier. Once you've built the Docker image, you can run it with the necessary ports exposed for communication. Docker handles all the environment configurations, including dependencies for Python, making it easier to deploy anywhere.
-
-#### Steps:
-Build the Docker image with the command:
-
-```bash
-docker build -t anova-server .
-```
-
-#### Run the Docker container:
-```bash
-docker run -p 8000:8000 -p 8080:8080 anova-server
-```
-
-#### Manual Bluetooth Control
-Currently, Bluetooth control functionality is not configured in the docker instance but it is implemented in the server code. There are some technical hurdles that need to be overcome to integrate Bluetooth via docker that wasnt my usecase. You will need to deploy the code (not the docker) on a RPI 4 from there you can start the process via the API and BLE and move the Anova to a server or stay on the RPI. This part is needed to move from a BLE supporting device to a server runnign docker.
-
-Implementing Bluetooth control in docker is a planned feature for future releases via Dockercontainer (so it doesnt matter if you deploy on a RPI or X86). ##Contributions in this area are welcome if you have the necessary time.## Basiccaly it works but you need to deploy it on a RPI 4 via GIT clone and start the service there.
-
-BEWARE this forces specific configuration on your system!!!!!
-```bash
-apt-get update && \
-apt-get upgrade -y && \
-apt-get install -y --no-install-recommends \
-software-properties-common \
-gpg-agent
-add-apt-repository ppa:deadsnakes/ppa -y
-apt-get install -y --no-install-recommends \    
-python3.11 \
-python3.11-venv \
-python3.11-distutils \
-python3-pip
-update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-update-alternatives --config python3	
-python3.11 -m pip install --upgrade pip
-pip install pyproject.toml bleak uvicorn fastapi pydantic-setting
-```
-
-From there the server should start:
-
-```bash
-uvicorn app.main:app --reload  --app-dir /anova/python --port 8000 --host 0.0.0.0 
-```
-
-Start by accessing the server at http://[yourserverip]:8000/docs
-
-AGAIN BE AWERE "The support for the host BLE is not in the container code (I used the setup with a RPI to couple the anova to my docker server)"
-
-The migration steps of the anova can be executed by accessing http://[yourserverip]:8000/docs here is a page for using the api's.
-   - 1 make a new key for the anova
-     /api/ble/secret_key
-     VERY IMPORTANT COPY the key and fill it in at the HTTPBearer  (http, Bearer) or the APIKeyQuery (apiKey). You will need to repeat this every time you want to contact the anova via this page. So write (store) the devicename and key!!!!!!!!!!!!!!!!
-   - 2 push the server config
-     /api/ble/config_wifi_server add the host (the RPI running or a docker host where this instance is running) and the port
-   - 3 install the wifi config
-     Go TO /api/ble/config_wifi_server, you must add your private SSID and PWD
-
-NOW your off the grid with the Anova ;-)
-
-# Home Assistant Integration for Anova Precision Cooker
-
-## Overview
-This integration allows Home Assistant to monitor and control an Anova Precision Cooker over WiFi using REST sensors and commands. The API enables real-time temperature monitoring, status tracking, and remote control of cooking functions.
+---
 
 ## Features
-- **Monitor the Anova device**: Retrieve real-time data such as current temperature, target temperature, timer, and device status.
-- **Control the Anova device**: Set temperature, start and stop cooking, manage timers, and clear alarms.
-- **Seamless integration**: Works with Home Assistant’s RESTful platform to provide real-time updates and control.
 
-## Setup Instructions
+- Control and monitor Anova via RESTful API
+- Integrates with Home Assistant via REST sensors and commands
+- Supports both WiFi and Bluetooth (BLE) devices
+- Dockerized for portability and easy deployment
+- Flexible: use on x86 or Raspberry Pi
+- BLE <-> WiFi Proxy support for moving devices from BLE to WiFi
 
-### 1. Enable REST API Access
-Ensure that your Anova Precision Cooker is connected to the internet and that you have access to the API. You will need:
-- The base URL of the API (replace `YOUR_ANOVA_API_URL`)
-- The device ID (replace `YOUR_DEVICE_ID`)
-- Your secret key for authentication (replace `YOUR_SECRET_KEY`)
+---
 
-### 2. Add REST Sensors to `configuration.yaml`
-The following YAML configuration will create sensors to monitor your Anova device:
+## Quick Start
+
+### 1. Clone and Build
+
+```bash
+git clone https://github.com/RoyOltmans/anova_server.git
+cd anova_server
+docker build -t anova-server .
+```
+
+### 2. Run the Docker Container
+
+If you want to connect the server (running in Docker) to a BLE proxy running on another device (e.g. a Raspberry Pi), set the `BLE_PROXY_URL` environment variable when running the container:
+
+```bash
+docker run -p 8000:8000 -p 8080:8080 \
+  -e BLE_PROXY_URL=http://[your ble server]:5000 \
+  anova-server
+```
+
+- Replace `[your ble server]` with the hostname or IP address of your BLE proxy server.
+
+Visit [http://localhost:8000](http://localhost:8000) or [http://localhost:8080](http://localhost:8080).
+
+---
+
+## BLE (Bluetooth) Proxy on Raspberry Pi
+
+The project includes a lightweight BLE proxy (in `ble_proxy/ble_server.py`) for bridging BLE-only Anova devices to WiFi.  
+**This is run natively on a BLE-capable Raspberry Pi, not in Docker.**
+
+### BLE Proxy Environment Variables
+
+To use the BLE proxy you **must** set the environment variable `BLE_ADAPTER` to specify which Bluetooth adapter to use (such as `hci0`).  
+You may also set `BLE_PROXY_PORT` to define the HTTP port (default: 5000).
+
+**Example usage:**
+
+```bash
+export BLE_ADAPTER=hci0
+export BLE_PROXY_PORT=5000  # Optional, defaults to 5000
+python3 ble_server.py
+```
+
+- `BLE_ADAPTER`: (Required) Your Bluetooth adapter, usually `hci0`
+- `BLE_PROXY_PORT`: (Optional) Port to run the proxy (default: 5000)
+
+The proxy will expose an HTTP API so the main Anova server (Docker or host) can communicate with BLE devices via the Pi.
+
+---
+
+## Manual RPi Host Setup (for BLE, native Python)
+
+If you want to run the server **natively** on a Raspberry Pi with BLE (not in Docker):
+
+```bash
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install -y --no-install-recommends \
+    software-properties-common gpg-agent python3.11 python3.11-venv python3.11-distutils python3-pip
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+sudo update-alternatives --config python3
+python3.11 -m pip install --upgrade pip
+pip install pyproject.toml bleak uvicorn fastapi pydantic-settings
+```
+
+Start the API server:
+
+```bash
+uvicorn app.main:app --reload --app-dir ./anova_server/python --port 8000 --host 0.0.0.0
+```
+
+---
+
+### Running the BLE Proxy as a systemd Service
+
+You can run the BLE proxy as a background service so it starts on boot and is managed by `systemctl`.
+
+**1. Create a file `/etc/systemd/system/ble-uvicorn.service` with the following content:**
+
+```ini
+[Unit]
+Description=BLE Proxy Uvicorn Service
+After=network.target
+
+[Service]
+# Working directory (where ble_server.py is located)
+WorkingDirectory=/opt/ble_proxy
+
+# Command to run. Use the full path to uvicorn if needed.
+ExecStart=/home/USERNAME/.local/bin/uvicorn ble_server:app --host 0.0.0.0 --port 5000
+
+# If using a Python virtual environment:
+# ExecStart=/opt/ble_proxy/venv/bin/uvicorn ble_server:app --host 0.0.0.0 --port 5000
+
+# The user to run as (change to your own user or 'pi')
+User=USERNAME
+Group=USERNAME
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**2. Reload systemd and enable/start the service:**
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable ble-uvicorn.service
+sudo systemctl start ble-uvicorn.service
+sudo systemctl status ble-uvicorn.service
+```
+
+**Notes:**
+- Replace `USERNAME` with your actual Linux user (commonly `pi` on Raspberry Pi).
+- Set `WorkingDirectory` and `ExecStart` to your actual paths.
+- If you use a Python virtual environment, point `ExecStart` to its `uvicorn`.
+
+---
+
+## Manual Bluetooth Control
+
+Currently, Bluetooth control is **not** supported in Docker.  
+If you need BLE, use the instructions above to run on a Raspberry Pi natively, setting the `BLE_ADAPTER` environment variable.
+
+---
+
+## Home Assistant Integration
+
+1. See API docs at `/docs` (OpenAPI/Swagger).
+2. Add REST sensors and commands to `configuration.yaml` (see examples below):
+
+### Example (replace placeholders):
 
 ```yaml
 sensor:
-  - platform: rest
-    name: "Anova Devices"
-    resource: "http://YOUR_ANOVA_API_URL/api/devices"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-    value_template: "{{ value_json | length }}"
-    json_attributes:
-      - id
-      - version
-    scan_interval: 300
-
   - platform: rest
     name: "Anova Temperature"
     resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/temperature"
@@ -126,50 +171,7 @@ sensor:
     value_template: "{{ value_json.temperature }}"
     unit_of_measurement: "°C"
     scan_interval: 60
-
-  ## use this sensor to so the lovelace gauge will not complain if your device is off
-  - platform: template
-    sensors:
-      anova_temperature_numeric:
-        friendly_name: "Anova Temperature (Numeric)"
-        value_template: >-
-          {% set val = states('sensor.anova_temperature') %}
-          {% if val in ['unknown', 'unavailable'] %}
-            {{ 0 | float }}
-          {% else %}
-            {{ val | float }}
-          {% endif %}
-        unit_of_measurement: "°C"
-
-  - platform: rest
-    name: "Anova Target Temperature"
-    resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/target_temperature"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-    value_template: "{{ value_json.temperature }}"
-    unit_of_measurement: "°C"
-    scan_interval: 60
-
-  - platform: rest
-    name: "Anova Timer"
-    resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-    value_template: "{{ value_json.timer }}"
-    unit_of_measurement: "minutes"
-    scan_interval: 60
-
-  - platform: rest
-    name: "Anova Status"
-    resource: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/state"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-    value_template: "{{ value_json.status }}"
-    scan_interval: 60
 ```
-
-### 3. Add REST Commands to `configuration.yaml`
-These commands allow you to control the Anova device remotely:
 
 ```yaml
 rest_command:
@@ -180,93 +182,38 @@ rest_command:
       Authorization: "Bearer YOUR_SECRET_KEY"
       Content-Type: "application/json"
     payload: '{"temperature": {{ temperature }} }'
-
-  start_anova_cooking:
-    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/start"
-    method: "post"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-      Content-Type: "application/json"
-
-  stop_anova_cooking:
-    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/stop"
-    method: "post"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-      Content-Type: "application/json"
-
-  set_anova_timer:
-    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer"
-    method: "post"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-      Content-Type: "application/json"
-    payload: '{"minutes": {{ minutes }} }'
-
-  start_anova_timer:
-    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer/start"
-    method: "post"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-      Content-Type: "application/json"
-
-  stop_anova_timer:
-    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/timer/stop"
-    method: "post"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-      Content-Type: "application/json"
-
-  clear_anova_alarm:
-    url: "http://YOUR_ANOVA_API_URL/api/devices/YOUR_DEVICE_ID/alarm/clear"
-    method: "post"
-    headers:
-      Authorization: "Bearer YOUR_SECRET_KEY"
-      Content-Type: "application/json"
 ```
 
-### 4. Reload Home Assistant
-After updating your `configuration.yaml`, restart Home Assistant to apply the changes. You can do this via Developer Tools > YAML > Restart.
+---
 
-### 5. Home Assistant Lovelace panel
+## BLE Setup & WiFi Migration
 
-The lovelace panel allows you to control and monitor the Anova Precision Cooker directly from Home Assistant. It requires the anova_server integration to establish communication with your cooker.
-visit this [lovelace_panel](https://github.com/RoyOltmans/lovalace_panel_anova_server)
+1. **Pair Anova over BLE:**  
+   Use `/api/ble/secret_key` and save the key and device name.
+2. **Push server config:**  
+   `/api/ble/config_wifi_server` — Add the server IP/host and port.
+3. **Install WiFi config:**  
+   Add your WiFi SSID and password via the API.
 
-## Usage
-Once set up, you can:
-- View the Anova device status in Home Assistant’s UI
-- Set the target temperature and start cooking using scripts or automations
-- Monitor and adjust the timer remotely
-- Stop cooking or clear alarms as needed
-
-## Notes
-- Ensure your Anova device is powered on and connected to WiFi.
-- Replace placeholders (`YOUR_ANOVA_API_URL`, `YOUR_DEVICE_ID`, `YOUR_SECRET_KEY`) with your actual API details.
-- You can create automations in Home Assistant to adjust cooking based on time or temperature.
-This integration provides full remote control over the Anova Precision Cooker via Home Assistant. By leveraging REST sensors and commands, you can automate and monitor your sous-vide cooking experience with ease.
+---
 
 ## Troubleshooting
-- **Data not updating?** Check if your API key is correct and the device is reachable.
-- **Commands not working?** Ensure the Home Assistant instance has network access to the Anova device.
-- **Incorrect temperature units?** Verify your device settings for Celsius or Fahrenheit.
 
-### Background
-This repository started from the Python script created by AlmogBaku. Initially, I attempted to get the server working using Go, but after some challenges with dependencies and server setup, I shifted to Python and Docker for a smoother experience. The result is a more streamlined approach with working Docker support.
+- Ensure your `BLE_ADAPTER` variable matches your hardware (`hci0` is common for internal Pi BLE).
+- If using Docker and a remote BLE proxy, **set** `-e BLE_PROXY_URL=http://[your ble server]:5000` (replace host as needed).
+- Docker does **not** support BLE directly yet. For BLE, use the native install on RPi and the proper env vars.
+- Ensure Home Assistant and the server are on the same network.
 
-### License
-This project is licensed under the MIT License. See [LICENSE](/LICENSE) for details.
+---
 
-### Disclaimer
-Anova_server itself and the associated Python script are distributed under the MIT License. While every effort has been made to ensure the safety and security of this code, you use it at your own risk. Configure the script and card securely to avoid exposing sensitive data. Performance may vary depending on the size and structure of your filesystem.
+## License
 
-### References
+MIT License — See [LICENSE](LICENSE).
 
-Thanks for @TheUbuntuGuy for the initial research on the Anova Wi-Fi protocol:
+---
 
-- https://www.youtube.com/watch?v=xDDPFHhY7ec
-- https://gist.github.com/TheUbuntuGuy/225492a8dec816d49b70d9c21811e8b1
+## References
 
-**Important**: This project is not affiliated with Anova or any other company. It's a community project that aims to
-keep the device functional after the cloud services are shut down.
+Thanks to [@TheUbuntuGuy](https://gist.github.com/TheUbuntuGuy/225492a8dec816d49b70d9c21811e8b1) for original Anova Wi-Fi protocol research.  
+Not affiliated with Anova Culinary. Community-maintained.
 
