@@ -16,6 +16,15 @@ A Python and Docker-based server for controlling your Anova Precision Cooker via
 
 ---
 
+## BugFixes 
+
+August 2025
+ - Removed DockerFile in root (not correctly linked with the anova server), mixup accured because of adding BLE features
+ - Markup fixes in DockerFIle
+ - You need to build the docker in the anova_server folder
+
+---
+
 ## Features
 
 - Control and monitor Anova via RESTful API
@@ -29,11 +38,11 @@ A Python and Docker-based server for controlling your Anova Precision Cooker via
 
 ## Quick Start
 
-### 1. Clone and Build
+### 1. Clone and Build Anova Server
 
 ```bash
 git clone https://github.com/RoyOltmans/anova_server.git
-cd anova_server
+cd anova_server/anova_server
 docker build -t anova-server .
 ```
 
