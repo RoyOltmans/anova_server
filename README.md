@@ -60,6 +60,8 @@ docker run -p 8000:8000 -p 8080:8080 \
 
 Visit [http://localhost:8000/docs#/default/get_devices_api_devices_get](http://localhost:8000/docs#/default/get_devices_api_devices_get) or [http://localhost:8080/docs#/default/get_devices_api_devices_get](http://localhost:8080/docs#/default/get_devices_api_devices_get).
 
+Be aware, if you are debugging via a console, you will see error's this is can be because your Anova is not powered on (this will register as an error). This can mean that the server is running according and it will function if your Anova registers itself via the network.
+
 ---
 
 ## BLE (Bluetooth) Proxy on Raspberry Pi
@@ -225,5 +227,6 @@ MIT License — See [LICENSE](LICENSE).
 
 Thanks to [@TheUbuntuGuy](https://gist.github.com/TheUbuntuGuy/225492a8dec816d49b70d9c21811e8b1) for original Anova Wi-Fi protocol research.  
 Not affiliated with Anova Culinary. Community-maintained.
+
 
 
