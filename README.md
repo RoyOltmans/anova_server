@@ -58,7 +58,7 @@ docker run -p 8000:8000 -p 8080:8080 \
 
 - Replace `[your ble server]` with the hostname or IP address of your BLE proxy server.
 
-Visit [http://localhost:8000](http://localhost:8000) or [http://localhost:8080](http://localhost:8080).
+Visit [http://localhost:8000/docs#/default/get_devices_api_devices_get](http://localhost:8000/docs#/default/get_devices_api_devices_get) or [http://localhost:8080/docs#/default/get_devices_api_devices_get](http://localhost:8080/docs#/default/get_devices_api_devices_get).
 
 ---
 
@@ -225,4 +225,5 @@ MIT License — See [LICENSE](LICENSE).
 
 Thanks to [@TheUbuntuGuy](https://gist.github.com/TheUbuntuGuy/225492a8dec816d49b70d9c21811e8b1) for original Anova Wi-Fi protocol research.  
 Not affiliated with Anova Culinary. Community-maintained.
+
 
