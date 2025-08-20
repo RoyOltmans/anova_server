@@ -106,7 +106,7 @@ pip install pyproject.toml bleak uvicorn fastapi pydantic-settings
 Start the API server:
 
 ```bash
-uvicorn app.main:app --reload --app-dir ./anova_server/python --port 8000 --host 0.0.0.0
+uvicorn app.main:app --reload --app-dir ./anova_server/python --port 5000 --host 0.0.0.0
 ```
 
 ---
@@ -227,6 +227,7 @@ MIT License — See [LICENSE](LICENSE).
 
 Thanks to [@TheUbuntuGuy](https://gist.github.com/TheUbuntuGuy/225492a8dec816d49b70d9c21811e8b1) for original Anova Wi-Fi protocol research.  
 Not affiliated with Anova Culinary. Community-maintained.
+
 
 
 
